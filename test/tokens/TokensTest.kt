@@ -16,6 +16,8 @@ import org.junit.jupiter.api.Test
 import java.util.*
 import kotlin.test.assertEquals
 import com.google.gson.GsonBuilder
+import org.jetbrains.exposed.sql.StdOutSqlLogger
+import org.jetbrains.exposed.sql.addLogger
 import java.time.Instant
 
 
@@ -24,76 +26,9 @@ class TokensTest {
     fun cleanup() {
         DB.connect()
         transaction {
+            addLogger(StdOutSqlLogger)
             SchemaUtils.drop(Tokens)
             SchemaUtils.create(Tokens)
-        }
-    }
-    private val activeFb = """
-                {
-                    "user": "nick@circlesocialinc.com",
-                    "access_token": "ABC123NewToken",
-                    "expire_time": 1641013200,
-                    "refresh_token": "ABC321NewToken",
-                    "id_provider": "facebook"
-                }
-            
-        """.asJson()
-    private val expiredFb = """
-                {
-                    "user": "nick@circlesocialinc.com",
-                    "access_token": "ABC123NewToken",
-                    "expire_time": 1609488000,
-                    "refresh_token": "ABC321NewToken",
-                    "id_provider": "facebook"
-                }
-            
-        """.asJson()
-    private val expiredGoogleAds = """
-                {
-                    "user": "nick@circlesocialinc.com",
-                    "access_token": "ABC123NewToken",
-                    "expire_time": 1609488000,
-                    "refresh_token": "ABC321NewToken",
-                    "id_provider": "google_ads"
-                }
-            
-        """.asJson()
-    private val expiredGoogleAnalytics = """
-                {
-                    "user": "nick@circlesocialinc.com",
-                    "access_token": "ABC123NewToken",
-                    "expire_time": 1609488000,
-                    "refresh_token": "ABC321NewToken",
-                    "id_provider": "google_analytics"
-                }
-            
-        """.asJson()
-    private val expiredGoogleMyBusiness = """
-                {
-                    "user": "nick@circlesocialinc.com",
-                    "access_token": "ABC123NewToken",
-                    "expire_time": 1609488000,
-                    "refresh_token": "ABC321NewToken",
-                    "id_provider": "google_my_business"
-                }
-            
-        """.asJson()
-    private val expiredNewsletters = """
-                {
-                    "user": "nick@circlesocialinc.com",
-                    "access_token": "ABC123NewToken",
-                    "expire_time": 1609488000,
-                    "refresh_token": "ABC321NewToken",
-                    "id_provider": "newsletters"
-                }
-            
-        """.asJson()
-    private val expiredTokens = listOf(expiredFb, expiredGoogleAds, expiredGoogleAnalytics, expiredGoogleMyBusiness, expiredNewsletters)
-    private val oneActiveToken = listOf(activeFb, expiredGoogleAds, expiredGoogleAnalytics, expiredGoogleMyBusiness, expiredNewsletters)
-    private suspend fun seedTokens(tokens: List<JsonNode>) {
-        val dbController = TokensServiceDB()
-        for (token in tokens) {
-            dbController.create(token.asTokenPost())
         }
     }
 
@@ -150,7 +85,6 @@ class TokensTest {
                 assertEquals(HttpStatusCode.Unauthorized, call.response.status())
             }
     }
-
     @Test
     fun `authorized GET tokens returns List of all tokens`() {
         // setup
@@ -205,31 +139,54 @@ class TokensTest {
         }
     }
 
+    @Test
+    fun `unauthorized PUT tokens {id} returns HTTP Unauthorized`() {
+        withTestApplication(Application::mainModule) {
+            val call = handleRequest(HttpMethod.Put, "/tokens") {
+                val encodedPassword: String = Base64
+                    .getEncoder()
+                    // wrong password
+                    .encodeToString("nick@circlesocialinc.com:00+M9-fKrrzQ43q=KM".toByteArray())
+                addHeader(HttpHeaders.Authorization, "Basic $encodedPassword")
+                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.withCharset(Charsets.UTF_8).toString())
+                val newToken = """
+                {
+                    "user": "nick@circlesocialinc.com",
+                    "access_token": "ABC123NewToken",
+                    "expire_time": "1641013200",
+                    "refresh_token": "ABC321NewToken",
+                    "id_provider": "facebook"
+                }
+                """.asJson()
+                setBody(newToken.toString())
+            }
+            assertEquals(HttpStatusCode.Unauthorized, call.response.status())
+        }
+    }
+    @Test
+    fun `authorized PUT tokens {id} returns HTTP Unauthorized`() {
+        withTestApplication(Application::mainModule) {
+            val call = handleRequest(HttpMethod.Put, "/tokens") {
+                val encodedPassword: String = Base64
+                    .getEncoder()
+                    .encodeToString("nick@circlesocialinc.com:+M9-fKrrzQ43q=KM".toByteArray())
+                addHeader(HttpHeaders.Authorization, "Basic $encodedPassword")
+                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.withCharset(Charsets.UTF_8).toString())
+                val newToken = """
+                {
+                    "user": "nick@circlesocialinc.com",
+                    "access_token": "ABC123NewToken",
+                    "expire_time": "1641013200",
+                    "refresh_token": "ABC321NewToken",
+                    "id_provider": "facebook"
+                }
+                """.asJson()
+                setBody(newToken.toString())
+            }
+            assertEquals(HttpStatusCode.Created, call.response.status())
+        }
+    }
 
-    // "/tokens/{id}"
-
-    //@Test
-    //fun `unauthorized PUT tokens {id} returns HTTP Unauthorized`() {
-    //}
-
-    //@Test
-    //fun `authorized PUT tokens {id} returns HTTP OK`() {
-    //    withTestApplication(Application::mainModule) {
-    //        val call = handleRequest(HttpMethod.Put, "/tokens")
-    //        addHeader()
-    //        val newToken = """
-    //        {
-    //            "user": "nick@circlesocialinc.com",
-    //            "access_token": "ABC123NewToken",
-    //            "expire_time": "982828283191",
-    //            "refresh_token": "ABC321NewToken",
-    //            "id_provider": "facebook"
-    //        }
-    //        """.asJson()
-    //        setBody().formUrlEncode()
-    //        assertEquals(HttpStatusCode.OK, call.response.status())
-    //    }
-    //}
 
 }
 //fun TestApplicationEngine.postToken(token: JsonNode): TestApplicationCall {
@@ -254,4 +211,72 @@ fun JsonNode.asTokenPost(): TokenPost {
         this["id_provider"].toString()
     )
 
+}
+private val activeFb = """
+                {
+                    "user": "nick@circlesocialinc.com",
+                    "access_token": "ABC123NewToken",
+                    "expire_time": 1641013200,
+                    "refresh_token": "ABC321NewToken",
+                    "id_provider": "facebook"
+                }
+            
+        """.asJson()
+private val expiredFb = """
+                {
+                    "user": "nick@circlesocialinc.com",
+                    "access_token": "ABC123NewToken",
+                    "expire_time": 1609488000,
+                    "refresh_token": "ABC321NewToken",
+                    "id_provider": "facebook"
+                }
+            
+        """.asJson()
+private val expiredGoogleAds = """
+                {
+                    "user": "nick@circlesocialinc.com",
+                    "access_token": "ABC123NewToken",
+                    "expire_time": 1609488000,
+                    "refresh_token": "ABC321NewToken",
+                    "id_provider": "google_ads"
+                }
+            
+        """.asJson()
+private val expiredGoogleAnalytics = """
+                {
+                    "user": "nick@circlesocialinc.com",
+                    "access_token": "ABC123NewToken",
+                    "expire_time": 1609488000,
+                    "refresh_token": "ABC321NewToken",
+                    "id_provider": "google_analytics"
+                }
+            
+        """.asJson()
+private val expiredGoogleMyBusiness = """
+                {
+                    "user": "nick@circlesocialinc.com",
+                    "access_token": "ABC123NewToken",
+                    "expire_time": 1609488000,
+                    "refresh_token": "ABC321NewToken",
+                    "id_provider": "google_my_business"
+                }
+            
+        """.asJson()
+private val expiredNewsletters = """
+                {
+                    "user": "nick@circlesocialinc.com",
+                    "access_token": "ABC123NewToken",
+                    "expire_time": 1609488000,
+                    "refresh_token": "ABC321NewToken",
+                    "id_provider": "newsletters"
+                }
+            
+        """.asJson()
+private val expiredTokens = listOf(expiredFb, expiredGoogleAds, expiredGoogleAnalytics, expiredGoogleMyBusiness, expiredNewsletters)
+private val oneActiveToken = listOf(activeFb, expiredGoogleAds, expiredGoogleAnalytics, expiredGoogleMyBusiness, expiredNewsletters)
+private suspend fun seedTokens(tokens: List<JsonNode>) {
+    val dbController = TokensServiceDB()
+    for (token in tokens) {
+        dbController.create(token.asTokenPost())
+    }
 }

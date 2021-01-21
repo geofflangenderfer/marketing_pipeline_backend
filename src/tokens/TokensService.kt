@@ -18,6 +18,8 @@ interface TokensService {
 class TokensServiceDB : TokensService {
     override suspend fun create(tokenPost: TokenPost): Int {
         val id = transaction {
+            addLogger(StdOutSqlLogger)
+
             Tokens.insertAndGetId { token ->
                 token[Tokens.user] = tokenPost.user
                 token[Tokens.access_token] = tokenPost.access_token
@@ -31,6 +33,8 @@ class TokensServiceDB : TokensService {
 
     override suspend fun update(tokenPost: TokenPost): Int {
         return transaction {
+            addLogger(StdOutSqlLogger)
+
             Tokens.update({ Tokens.id_provider eq tokenPost.id_provider}) {
                 it[Tokens.access_token] = tokenPost.access_token
                 it[Tokens.expire_time] = tokenPost.expire_time
@@ -41,6 +45,7 @@ class TokensServiceDB : TokensService {
 
     override suspend fun expired(): List<TokenPost> {
         return transaction {
+            addLogger(StdOutSqlLogger)
             Tokens.selectAll()
                .filter { row ->
                    val expireTime = row[Tokens.expire_time].toLong()
@@ -52,6 +57,7 @@ class TokensServiceDB : TokensService {
     }
     override suspend fun all(): List<TokenPost> {
         return transaction {
+            addLogger(StdOutSqlLogger)
             Tokens.selectAll()
                 .map { row -> row.asToken() }
         }
