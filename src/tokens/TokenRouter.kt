@@ -16,8 +16,8 @@ fun Route.tokenRouter(tokenService: TokensService) {
             } else {
                 val body = call.receive<TokenPost>()
                 val id = tokenService.create(body)
-                println("id: $id")
-                call.respond(HttpStatusCode.Created)
+                // should I
+                call.respond(HttpStatusCode.Created)//, id) should I send this along too?
             }
         }
         get {
@@ -38,7 +38,18 @@ fun Route.tokenRouter(tokenService: TokensService) {
                     val providers = tokenService.expired()
                     call.respond(providers)
                 }
-
+            }
+        }
+        route("/{id}") {
+            put {
+                val principal = call.principal<UserIdPrincipal>()
+                if (principal == null) {
+                    call.respond(HttpStatusCode.Unauthorized)
+                } else {
+                    val body = call.receive<TokenPost>()
+                    val id = tokenService.update(body)
+                    call.respond(HttpStatusCode.Created)//, id) should I send this?
+                }
             }
         }
     }

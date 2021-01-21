@@ -1,9 +1,7 @@
 package geofflangenderfer.tokens
 
 import geofflangenderfer.Tokens
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.insertAndGetId
-import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.Instant
 import java.util.*
@@ -11,6 +9,7 @@ import java.util.*
 
 interface TokensService {
     suspend fun create(tokenPost: TokenPost): Int
+    suspend fun update(tokenPost: TokenPost): Int
     suspend fun expired(): List<TokenPost>
     suspend fun all(): List<TokenPost>
     suspend fun getLongTermAccessToken()
@@ -28,6 +27,16 @@ class TokensServiceDB : TokensService {
             }
         }
         return id.value
+    }
+
+    override suspend fun update(tokenPost: TokenPost): Int {
+        return transaction {
+            Tokens.update({ Tokens.id_provider eq tokenPost.id_provider}) {
+                it[Tokens.access_token] = tokenPost.access_token
+                it[Tokens.expire_time] = tokenPost.expire_time
+                it[Tokens.refresh_token] = tokenPost.refresh_token
+            }
+        }
     }
 
     override suspend fun expired(): List<TokenPost> {
