@@ -13,6 +13,18 @@ apply plugin: 'application'
 
 mainClassName = "ApplicationKt"
 
+jar {
+  manifest {
+    attributes "Main-Class": mainClassName
+  }
+  from {
+    configuration.runtimeClasspath.collect {
+      f -> f.isDirectory() ? f : zipTree(f)
+    }
+  }
+  archiveName "pipeline-server.jar"
+}
+
 group 'geofflangenderfer'
 version '0.0.1'
 mainClassName = "io.ktor.server.netty.EngineMain"
