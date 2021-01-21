@@ -6,7 +6,6 @@ import geofflangenderfer.tokens.TokensServiceDB
 import geofflangenderfer.tokens.tokenRouter
 import io.ktor.application.*
 import io.ktor.response.*
-//import io.ktor.request.*
 import io.ktor.routing.*
 import io.ktor.http.*
 import io.ktor.auth.*
@@ -18,10 +17,10 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
 
-//import java.lang.Compiler.enable
 
 fun main() {
     val port = System.getenv("DB_PORT")?.toInt() ?: 8080
+    println("port $port")
 
     val server = embeddedServer(Netty, port, module = Application::module)
 

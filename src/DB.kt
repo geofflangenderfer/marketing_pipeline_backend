@@ -5,6 +5,14 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.net.URI
+import java.sql.DriverManager
+
+import java.sql.SQLException
+
+import java.net.URISyntaxException
+
+
+
 
 
 object DB {
@@ -13,7 +21,7 @@ object DB {
     private val dbName: String
     private val dbUser: String
     private val dbPassword: String
-
+    
     init {
         val dbUrl = System.getenv("DATABASE_URL")
         if (dbUrl != null) {
@@ -28,7 +36,7 @@ object DB {
         }
         else {
             host = System.getenv("DB_HOST")
-            port = System.getenv("DB_PORT").toInt()
+            port = System.getenv("PORT").toInt()
             dbName = System.getenv("DB_NAME")
             dbUser = System.getenv("DB_USER")
             dbPassword = System.getenv("DB_PASSWORD")
@@ -37,7 +45,8 @@ object DB {
     }
 
     fun connect(): Database {
-        return Database.connect(url="jdbc:postgresql://$host:$port/$dbName", driver="org.postgresql.Driver", user=dbUser, password=dbPassword)
+        val ssl = "?sslmode=require"
+        return Database.connect(url="jdbc:postgresql://$host:$port/$dbName$ssl", driver="org.postgresql.Driver", user=dbUser, password=dbPassword)
     }
     fun drop() {
         transaction {
