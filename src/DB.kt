@@ -36,7 +36,7 @@ object DB {
         }
         else {
             host = System.getenv("DB_HOST")
-            port = System.getenv("PORT").toInt()
+            port = System.getenv("DB_PORT").toInt()
             dbName = System.getenv("DB_NAME")
             dbUser = System.getenv("DB_USER")
             dbPassword = System.getenv("DB_PASSWORD")
