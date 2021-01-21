@@ -2,9 +2,8 @@ package geofflangenderfer.tokens
 
 import com.fasterxml.jackson.databind.JsonNode
 import geofflangenderfer.DB
-import geofflangenderfer.Tokens
 import geofflangenderfer.asJson
-import geofflangenderfer.mainModule
+import geofflangenderfer.module
 import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
@@ -35,7 +34,7 @@ class TokensTest {
     // "/login"
     @Test
     fun `unauthorized GET login returns HTTP Unauthorized`() {
-        withTestApplication(Application::mainModule) {
+        withTestApplication(Application::module) {
             val call = handleRequest(HttpMethod.Get, "/login") {
                 val encodedPassword: String = Base64
                     .getEncoder()
@@ -51,7 +50,7 @@ class TokensTest {
 
     @Test
     fun `authorized GET login returns HTTP OK`() {
-        withTestApplication(Application::mainModule) {
+        withTestApplication(Application::module) {
             val call = handleRequest(HttpMethod.Get, "/login") {
                 val encodedPassword: String = Base64
                     .getEncoder()
@@ -72,7 +71,7 @@ class TokensTest {
         // setup
         runBlocking { seedTokens(expiredTokens) }
             // act
-            withTestApplication(Application::mainModule) {
+            withTestApplication(Application::module) {
                 val call = handleRequest(HttpMethod.Get, "/tokens") {
                     val encodedPassword: String = Base64
                         .getEncoder()
@@ -91,7 +90,7 @@ class TokensTest {
         runBlocking { seedTokens(oneActiveToken) }
 
         // act
-        withTestApplication(Application::mainModule) {
+        withTestApplication(Application::module) {
             val call = handleRequest(HttpMethod.Get, "/tokens") {
                 val encodedPassword: String = Base64
                     .getEncoder()
@@ -115,7 +114,7 @@ class TokensTest {
         runBlocking { seedTokens(oneActiveToken) }
 
         // act
-        withTestApplication(Application::mainModule) {
+        withTestApplication(Application::module) {
             val call = handleRequest(HttpMethod.Get, "/tokens/expired") {
                 val encodedPassword: String = Base64
                     .getEncoder()
@@ -141,7 +140,7 @@ class TokensTest {
 
     @Test
     fun `unauthorized PUT tokens {id} returns HTTP Unauthorized`() {
-        withTestApplication(Application::mainModule) {
+        withTestApplication(Application::module) {
             val call = handleRequest(HttpMethod.Put, "/tokens") {
                 val encodedPassword: String = Base64
                     .getEncoder()
@@ -165,7 +164,7 @@ class TokensTest {
     }
     @Test
     fun `authorized PUT tokens {id} returns HTTP Unauthorized`() {
-        withTestApplication(Application::mainModule) {
+        withTestApplication(Application::module) {
             val call = handleRequest(HttpMethod.Put, "/tokens") {
                 val encodedPassword: String = Base64
                     .getEncoder()

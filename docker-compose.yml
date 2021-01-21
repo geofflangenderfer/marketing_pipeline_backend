@@ -1,0 +1,23 @@
+version: '3'
+services:
+  backend_db:
+    image: postgres:latest
+    ports:
+      - 5555:5432
+    environment:
+      - POSTGRES_USER=backend
+      - POSTGRES_PASSWORD=backend
+      - POSTGRES_DB=tokens
+  web:
+    build: .
+    ports:
+      - 8080:8080
+    depends_on:
+      - backend_db
+    environment:
+      - DB_HOST=backend_db
+      - DB_PORT=5432
+      - DB_USER=backend
+      - DB_PASSWORD=backend
+      - DB_NAME=tokens
+

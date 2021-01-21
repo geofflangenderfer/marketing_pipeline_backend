@@ -1,6 +1,7 @@
 package geofflangenderfer
 
 import com.fasterxml.jackson.databind.SerializationFeature
+import geofflangenderfer.tokens.Tokens
 import geofflangenderfer.tokens.TokensServiceDB
 import geofflangenderfer.tokens.tokenRouter
 import io.ktor.application.*
@@ -22,14 +23,14 @@ import org.jetbrains.exposed.sql.transactions.transaction
 fun main() {
     val port = 8080
 
-    val server = embeddedServer(Netty, port, module = Application::mainModule)
+    val server = embeddedServer(Netty, port, module = Application::module)
 
 
     server.start()
 
 }
 
-fun Application.mainModule() {
+fun Application.module() {
 
     DB.connect()
 
