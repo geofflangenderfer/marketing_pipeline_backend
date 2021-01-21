@@ -15,7 +15,7 @@ fun Route.tokenRouter(tokenService: TokensService) {
                 call.respond(HttpStatusCode.Unauthorized)
             } else {
                 val body = call.receive<TokenPost>()
-                val id = tokenService.update(body)
+                tokenService.update(body)
                 call.respond(HttpStatusCode.Created)//, id) should I send this?
             }
         }
@@ -25,7 +25,7 @@ fun Route.tokenRouter(tokenService: TokensService) {
                 call.respond(HttpStatusCode.Unauthorized)
             } else {
                 val body = call.receive<TokenPost>()
-                val id = tokenService.create(body)
+                tokenService.create(body)
                 call.respond(HttpStatusCode.Created)//, id) should I send this along too?
             }
         }
