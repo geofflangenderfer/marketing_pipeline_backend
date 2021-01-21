@@ -15,8 +15,7 @@ apply plugin: 'application'
 
 jar {
   manifest {
--    attributes "Main-Class": "MainKt"
-+    attributes "Main-Class": "geofflangenderfer.MainKt"
+    attributes "Main-Class": "geofflangenderfer.MainKt"
   }
   from {
     configurations.runtimeClasspath.collect {
