@@ -19,7 +19,7 @@ apply plugin: 'application'
 //        attributes 'Main-Class': mainClassName
 //    }
 //}
-mainClassName = "ApplicationKt"
+mainClassName = "geofflangenderfer.MainKt"
 
 jar {
   manifest {
