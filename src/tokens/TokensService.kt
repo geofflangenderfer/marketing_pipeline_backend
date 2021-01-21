@@ -52,14 +52,14 @@ class TokensServiceDB : TokensService {
                    val now = Instant.now().epochSecond
                    expireTime <= now
                 }
-                .map { row -> row.asToken() }
+                .map { row -> row.asTokenPost() }
         }
     }
     override suspend fun all(): List<TokenPost> {
         return transaction {
             addLogger(StdOutSqlLogger)
             Tokens.selectAll()
-                .map { row -> row.asToken() }
+                .map { row -> row.asTokenPost() }
         }
     }
 
@@ -77,7 +77,7 @@ data class TokenPost(
     val id_provider: String = ""
 )
 
-fun ResultRow.asToken() = TokenPost(
+fun ResultRow.asTokenPost() = TokenPost(
     this[Tokens.user],
     this[Tokens.access_token],
     this[Tokens.expire_time],

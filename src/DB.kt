@@ -45,8 +45,9 @@ object DB {
     }
 
     fun connect(): Database {
-        val ssl = "?sslmode=require"
-        return Database.connect(url="jdbc:postgresql://$host:$port/$dbName$ssl", driver="org.postgresql.Driver", user=dbUser, password=dbPassword)
+        // look into adding in the future
+        //val ssl = "?sslmode=require"
+        return Database.connect(url="jdbc:postgresql://$host:$port/$dbName", driver="org.postgresql.Driver", user=dbUser, password=dbPassword)
     }
     fun drop() {
         transaction {

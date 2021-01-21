@@ -20,13 +20,10 @@ import org.jetbrains.exposed.sql.transactions.transaction
 
 fun main() {
     val port = System.getenv("PORT")?.toInt() ?: 8080
-    println("port $port")
 
     val server = embeddedServer(Netty, port, module = Application::module)
 
-
     server.start()
-
 }
 
 fun Application.module() {
