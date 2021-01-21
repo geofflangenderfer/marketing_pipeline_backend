@@ -18,7 +18,7 @@ jar {
     attributes "Main-Class": mainClassName
   }
   from {
-    configuration.runtimeClasspath.collect {
+    configurations.runtimeClasspath.collect {
       f -> f.isDirectory() ? f : zipTree(f)
     }
   }

@@ -21,7 +21,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 //import java.lang.Compiler.enable
 
 fun main() {
-    val port = 8080
+    val port = System.getenv("DB_PORT")?.toInt() ?: 8080
 
     val server = embeddedServer(Netty, port, module = Application::module)
 
